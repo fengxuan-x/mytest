@@ -56,12 +56,15 @@ class Ads1220_Driver(MCU_IO):
     # 设置spi时序，即执行ssc sspi bus 1 0
     async def spi_config(self):
         await self.cs_high()
-        await self.ioboard.gpio_config(LS.PB, pin = LS.GPIO_PIN_13, mode = LS.GPIO_MODE_AF_PP, value = 1, pull = LS.GPIO_NOPULL, alt = 5, speed = 3)  # SCK
-        await self.ioboard.gpio_config(group = LS.PB, pin = LS.GPIO_PIN_14, mode = LS.GPIO_MODE_AF_OD, value = 0, pull = LS.GPIO_NOPULL, alt = 5, speed = 3)  # MISO
-        await self.ioboard.gpio_config(group = LS.PB, pin = LS.GPIO_PIN_15, mode = LS.GPIO_MODE_AF_PP, value = 1, pull = LS.GPIO_NOPULL, alt = 5, speed = 3)  # MOSI
+        await self.ioboard.gpio_config(LS.PB, pin = LS.GPIO_PIN_13, mode = LS.GPIO_MODE_AF_PP, value = 1, pull = LS.GPIO_NOPULL, alt = 5,
+                                       speed = 3)  # SCK
+        await self.ioboard.gpio_config(group = LS.PB, pin = LS.GPIO_PIN_14, mode = LS.GPIO_MODE_AF_OD, value = 0, pull = LS.GPIO_NOPULL, alt = 5,
+                                       speed = 3)  # MISO
+        await self.ioboard.gpio_config(group = LS.PB, pin = LS.GPIO_PIN_15, mode = LS.GPIO_MODE_AF_PP, value = 1, pull = LS.GPIO_NOPULL, alt = 5,
+                                       speed = 3)  # MOSI
         await self.ioboard.spi_config_ex(bus = self.spi_bus, rx_only = 0, data_8bit = 1, clk_pha_1 = 0, clk_pol_h = 0, clk_div = 16, msb_first = 1)
 
-    async def read_reg(self, reg: int, reg_size: int,  if_cs: bool = True):
+    async def read_reg(self, reg: int, reg_size: int, if_cs: bool = True):
         tx_byte = Commands.RREG | (reg << 2) | (reg_size - 1)
         await self.cs_low() if if_cs else ...
         ret, value = await self.ioboard.spi_trans(bus = self.spi_bus, byte_delay = 100, read_count = reg_size, cmd_count = 1,
@@ -71,9 +74,9 @@ class Ads1220_Driver(MCU_IO):
         await self.cs_high() if if_cs else ...
         return value
 
-    async def write_reg(self, reg: int, val: int, reg_size: int, if_cs: bool = True):
-        write_cmd = Commands.WREG | (reg << 2) | (reg_size - 1)
-        tx_bytes = [write_cmd, (val & 0xFF)]
+    async def write_reg(self, reg: int, val: list, if_cs: bool = True):
+        write_cmd = Commands.WREG | (reg << 2) | (len(val) - 1)
+        tx_bytes = [write_cmd] + val
         await self.cs_low() if if_cs else ...
         await self.ioboard.spi_trans(bus = self.spi_bus, byte_delay = 100, read_count = 0, cmd_count = len(tx_bytes),
                                      tx_bytes = tuple(tx_bytes))
@@ -84,7 +87,7 @@ class Ads1220_Driver(MCU_IO):
         发送xx指令
         """
         await self.cs_low()
-        await self.ioboard.spi_trans(bus = self.spi_bus, byte_delay = 1, read_count = 0, cmd_count = 1,tx_bytes = (cmd,))
+        await self.ioboard.spi_trans(bus = self.spi_bus, byte_delay = 1, read_count = 0, cmd_count = 1, tx_bytes = (cmd,))
         await self.cs_high()
 
     # 单次读
