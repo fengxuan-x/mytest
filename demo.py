@@ -1,15 +1,19 @@
 from ss_library.shc6xx_mtai import *
 from ss_library.shq_logger import *
 
+
 async def _main_task():
-    demo = Ads1220_Driver("COM1")
+    demo = Ads1220_Driver("COM8")
 
     await demo.power_up()
     await demo.spi_config()
-    await demo.write_reg(0, [0x50])
+    await demo.send_cmds(Commands.RESET)
+    await asyncio.sleep(0.1)
+    await demo.write_reg(0, [0x30])
 
     rreg = await demo.read_reg(0, 1)
-    print_debug(f"读取res = {rreg}")
+    print_debug(f"读取res = {list(rreg)}")
     await demo.async_close()
+
 
 asyncio.run(_main_task())
