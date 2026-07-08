@@ -111,7 +111,7 @@ class Ads1220_Driver(MCU_IO):
     async def continuous_conv(self, delay: int = 1, timeout: int = 2000000, read_times: int = 100):
         val = await self.read_reg(reg = 0x01, reg_size = 1)
         regval = int.from_bytes(val, byteorder = 'big')
-        await self.write_reg(reg = 0x01, val = regval | 0x04, reg_size = 1)
+        await self.write_reg(reg = 0x01, val = [regval | 0x04])
 
         cmdx = "spir 1 {} 3 1 0 1 0x200 0 {} {} {}".format(delay, timeout, read_times, Commands.START)
         await self.cs_low()
